@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -19,27 +20,34 @@ namespace Vendor_Bidding_Application.Controllers
     {
         private readonly IProjectRepository _projectRepository;
         private readonly IMapper _mapper;
-
+        private APIResponse _apiResponse;
         public ProjectsController(IProjectRepository projectRepository, IMapper mapper)
         {
             this._projectRepository = projectRepository;
             this._mapper = mapper;
+            this._apiResponse = new();
         }
          
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<IEnumerable<ProjectDTO>>> GetProjects()
+        public async Task<ActionResult<APIResponse>> GetProjects()
         {
             try
             {
                 var projects = await _projectRepository.GetAllAsync();
                 var projectDTOs = _mapper.Map<List<ProjectDTO>>(projects);
-                return Ok(projectDTOs);
+                _apiResponse.Data = projectDTOs;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                return Ok(_apiResponse);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving projects: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
  
@@ -48,7 +56,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<ProjectDTO>> GetProjectByIdAsync([FromRoute] int id)
+        public async Task<ActionResult<APIResponse>> GetProjectByIdAsync([FromRoute] int id)
         {
             try
             {
@@ -65,12 +73,17 @@ namespace Vendor_Bidding_Application.Controllers
 
                 var projectDTO = _mapper.Map<ProjectDTO>(project);
 
-                return Ok(projectDTO);
+                _apiResponse.Data = projectDTO;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+                return Ok(_apiResponse);
             }
             catch (Exception ex)
             {
-
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a project: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
 
@@ -79,7 +92,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ProjectDTO>> PostProjectAsync([FromBody] CreateProjectDTO projectDTO)
+        public async Task<ActionResult<APIResponse>> PostProjectAsync([FromBody] CreateProjectDTO projectDTO)
         {
             try
             {
@@ -94,11 +107,18 @@ namespace Vendor_Bidding_Application.Controllers
 
                 var obj = _mapper.Map<ProjectDTO>(project);
 
-                return CreatedAtAction(nameof(GetProjectByIdAsync), new { id = obj.Id }, obj);
+                _apiResponse.Data = obj;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.Created;
+
+                return CreatedAtAction(nameof(GetProjectByIdAsync), new { id = obj.Id }, _apiResponse);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a project: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
     }

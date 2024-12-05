@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Net;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Vendor_Bidding_Application.Contracts;
@@ -13,18 +14,20 @@ namespace Vendor_Bidding_Application.Controllers
     {
         private readonly IBidRepository _bidRepository;
         private readonly IMapper _mapper;
+        private APIResponse _apiResponse;
 
         public BidController(IBidRepository bidRepository, IMapper mapper)
         {
             this._bidRepository = bidRepository;
             this._mapper = mapper;
+            this._apiResponse = new();
         }
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<BidDTO>> CreateBidAsync([FromBody] CreateBidDTO bidDTO)
+        public async Task<ActionResult<APIResponse>> CreateBidAsync([FromBody] CreateBidDTO bidDTO)
         {
             try
             {
@@ -39,11 +42,18 @@ namespace Vendor_Bidding_Application.Controllers
 
                 var obj = _mapper.Map<BidDTO>(bid);
 
-                return CreatedAtAction(nameof(GetBidByIdAsync), new { id = obj.Id }, obj);
+                _apiResponse.Data = obj;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.Created;
+
+                return CreatedAtAction(nameof(GetBidByIdAsync), new { id = obj.Id }, _apiResponse);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a bid: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
 
@@ -52,7 +62,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<BidDTO>> GetBidByIdAsync([FromRoute] int vendorId)
+        public async Task<ActionResult<APIResponse>> GetBidByIdAsync([FromRoute] int vendorId)
         {
             try
             {
@@ -70,11 +80,18 @@ namespace Vendor_Bidding_Application.Controllers
 
                 var bidDTO = _mapper.Map<BidDTO>(bid);
 
-                return Ok(bidDTO);
+                _apiResponse.Data = bidDTO;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_apiResponse);
             }
             catch (Exception ex)
-            { 
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a bid: {ex.Message}" });
+            {
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             } 
         }
     }

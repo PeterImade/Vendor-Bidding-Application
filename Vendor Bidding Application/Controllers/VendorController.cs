@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Net;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Vendor_Bidding_Application.Contracts;
@@ -13,11 +14,12 @@ namespace Vendor_Bidding_Application.Controllers
     {
         private readonly IVendorRepository _vendorRepository;
         private readonly IMapper _mapper;
-
+        private APIResponse _apiResponse;
         public VendorController(IVendorRepository vendorRepository, IMapper mapper)
         {
             this._vendorRepository = vendorRepository;
             this._mapper = mapper;
+            this._apiResponse = new();
         }
 
         [HttpGet]
@@ -26,7 +28,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<VendorDTO>> GetVendorByIdAsync([FromRoute] int id)
+        public async Task<ActionResult<APIResponse>> GetVendorByIdAsync([FromRoute] int id)
         {
             try
             {
@@ -42,11 +44,18 @@ namespace Vendor_Bidding_Application.Controllers
                 }
                 var vendorDTO = _mapper.Map<VendorDTO>(vendor);
 
-                return Ok(vendorDTO);
+                _apiResponse.Data = vendorDTO;
+                _apiResponse.Status = true;
+                _apiResponse.StatusCode = HttpStatusCode.OK;
+
+                return Ok(_apiResponse);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a vendor: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
 
@@ -54,7 +63,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<VendorDTO>> CreateVendorAsync([FromBody] CreateVendorDTO vendorDTO)
+        public async Task<ActionResult<APIResponse>> CreateVendorAsync([FromBody] CreateVendorDTO vendorDTO)
         {
             try
             {
@@ -75,11 +84,18 @@ namespace Vendor_Bidding_Application.Controllers
 
                 var obj = _mapper.Map<VendorDTO>(vendor);
 
-                return CreatedAtAction(nameof(GetVendorByIdAsync), new { id = obj.Id }, obj);
+                _apiResponse.StatusCode = HttpStatusCode.Created;
+                _apiResponse.Status = true;
+                _apiResponse.Data = obj;
+
+                return CreatedAtAction(nameof(GetVendorByIdAsync), new { id = obj.Id }, _apiResponse);
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a project: {ex.Message}" });
+                _apiResponse.StatusCode = HttpStatusCode.InternalServerError;
+                _apiResponse.Status = false;
+                _apiResponse.Errors.Add(ex.Message);
+                return _apiResponse;
             }
         }
     }
