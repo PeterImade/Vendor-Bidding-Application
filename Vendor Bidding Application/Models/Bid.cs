@@ -12,7 +12,7 @@ namespace Vendor_Bidding_Application.Models
 
         [ForeignKey("ProjectId")]
         public Project? Project { get; set; }
-
         public decimal Amount { get; set; }
+        public string Status { get; set; } = "Submitted";
     }
 }

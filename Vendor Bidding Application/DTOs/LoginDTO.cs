@@ -2,7 +2,7 @@
 
 namespace Vendor_Bidding_Application.DTOs
 {
-    public class VendorLoginDTO
+    public class LoginDTO
     {
         [EmailAddress(ErrorMessage = "Invalid email address format.")]
         [Required(ErrorMessage = "The email field is required.")]

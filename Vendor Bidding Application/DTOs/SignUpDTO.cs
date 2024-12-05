@@ -2,12 +2,14 @@
 
 namespace Vendor_Bidding_Application.DTOs
 {
-    public class CreateVendorDTO
+    public class SignUpDTO
     {
-        [Required(ErrorMessage = "The vendor name is required.")]
         public string Name { get; set; }
         public string ContactNumber { get; set; }
         public string Address { get; set; }
+
+        [Required(ErrorMessage = "The location is required.")]
+        public string Location { get; set; }
 
         [EmailAddress(ErrorMessage = "Invalid email address format")]
         [Required(ErrorMessage = "The email field is required.")]

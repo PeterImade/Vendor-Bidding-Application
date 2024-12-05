@@ -37,9 +37,11 @@ namespace Vendor_Bidding_Application.Controllers
             {
                 var projects = await _projectRepository.GetAllAsync();
                 var projectDTOs = _mapper.Map<List<ProjectDTO>>(projects);
+
                 _apiResponse.Data = projectDTOs;
                 _apiResponse.Status = true;
                 _apiResponse.StatusCode = HttpStatusCode.OK;
+
                 return Ok(_apiResponse);
             }
             catch (Exception ex)
