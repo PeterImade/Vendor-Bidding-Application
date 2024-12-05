@@ -4,11 +4,13 @@ namespace Vendor_Bidding_Application.DTOs
 {
     public class CreateProjectDTO
     { 
-        [Required]
+        [Required(ErrorMessage = "Project name is required.")]
         public string Name { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Project description is required.")]
         public string Description { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Project Bugdet is required.")]
         public decimal Budget { get; set; }
     }
 }

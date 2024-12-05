@@ -4,11 +4,13 @@ namespace Vendor_Bidding_Application.DTOs
 {
     public class CreateBidDTO
     {
-        [Required]
+        [Required(ErrorMessage = "Vendor ID is required.")]
         public int VendorId { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Project ID is required.")]
         public int ProjectId { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Bid amount is required.")]
         public decimal Amount { get; set; }
     }
 }

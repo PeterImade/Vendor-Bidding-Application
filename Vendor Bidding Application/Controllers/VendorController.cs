@@ -28,17 +28,26 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<VendorDTO>> GetVendorByIdAsync([FromRoute] int id)
         {
-            if (id <= 0)
-            { 
-                return BadRequest("Invalid Id!");
-            }
-            var vendor = await _vendorRepository.GetAsync(id);
-            if (vendor == null)
+            try
             {
-                return NotFound($"Vendor with id {id} not found!");
+                if (id <= 0)
+                {
+                    return BadRequest("Invalid Id!");
+                }
+                var vendor = await _vendorRepository.GetAsync(id);
+
+                if (vendor == null)
+                {
+                    return NotFound($"Vendor with id {id} not found!");
+                }
+                var vendorDTO = _mapper.Map<VendorDTO>(vendor);
+
+                return Ok(vendorDTO);
             }
-            var vendorDTO = _mapper.Map<VendorDTO>(vendor);
-            return Ok(vendorDTO);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a vendor: {ex.Message}" });
+            }
         }
 
         [HttpPost]
@@ -47,19 +56,31 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VendorDTO>> CreateVendorAsync([FromBody] CreateVendorDTO vendorDTO)
         {
-            if(vendorDTO == null)
+            try
             {
-                return BadRequest("Invalid Data");
+                if (vendorDTO.Password.Length < 6)
+                {
+                    ModelState.AddModelError("Password", "Password must be at least 6 characters long.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var entity = _mapper.Map<Vendor>(vendorDTO);
+
+
+                var vendor = await _vendorRepository.AddAsync(entity);
+
+                var obj = _mapper.Map<VendorDTO>(vendor);
+
+                return CreatedAtAction(nameof(GetVendorByIdAsync), new { id = obj.Id }, obj);
             }
-
-            var entity = _mapper.Map<Vendor>(vendorDTO);
-
-            
-            var vendor = await _vendorRepository.AddAsync(entity);
-            
-            var obj = _mapper.Map<VendorDTO>(vendor);
-            
-            return CreatedAtAction(nameof(GetVendorByIdAsync), new { id = obj.Id }, obj);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a project: {ex.Message}" });
+            }
         }
     }
 }

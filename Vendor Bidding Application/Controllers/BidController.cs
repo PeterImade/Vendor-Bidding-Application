@@ -26,18 +26,25 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
         public async Task<ActionResult<BidDTO>> CreateBidAsync([FromBody] CreateBidDTO bidDTO)
         {
-            if (bidDTO == null)
+            try
             {
-                return UnprocessableEntity("Invalid data!");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var entity = _mapper.Map<Bid>(bidDTO);
+
+                var bid = await _bidRepository.AddAsync(entity);
+
+                var obj = _mapper.Map<BidDTO>(bid);
+
+                return CreatedAtAction(nameof(GetBidByIdAsync), new { id = obj.Id }, obj);
             }
-
-            var entity = _mapper.Map<Bid>(bidDTO);
-
-            var bid = await _bidRepository.AddAsync(entity);
-            
-            var obj = _mapper.Map<BidDTO>(bid);
-            
-            return CreatedAtAction(nameof(GetBidByIdAsync), new {id = obj.Id}, obj);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a bid: {ex.Message}" });
+            }
         }
 
         [HttpGet("{vendorId:int}")]
@@ -47,21 +54,28 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<BidDTO>> GetBidByIdAsync([FromRoute] int vendorId)
         {
-            if (vendorId <= 0)
+            try
             {
-                return BadRequest("Invalid Id!");
+                if (vendorId <= 0)
+                {
+                    return BadRequest("Invalid Id!");
+                }
+
+                var bid = await _bidRepository.GetAsync(vendorId);
+
+                if (bid == null)
+                {
+                    return NotFound($"Bid with vendor id {vendorId} not found!");
+                }
+
+                var bidDTO = _mapper.Map<BidDTO>(bid);
+
+                return Ok(bidDTO);
             }
-
-            var bid = await _bidRepository.GetAsync(vendorId);
-
-            if (bid == null)
-            {
-                return NotFound($"Bid with vendor id {vendorId} not found!");
-            }
-
-            var bidDTO = _mapper.Map<BidDTO>(bid);
-            
-            return Ok(bidDTO);
+            catch (Exception ex)
+            { 
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a bid: {ex.Message}" });
+            } 
         }
     }
 }

@@ -31,9 +31,16 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<IEnumerable<ProjectDTO>>> GetProjects()
         {
-            var projects = await _projectRepository.GetAllAsync();
-            var projectDTOs = _mapper.Map<List<ProjectDTO>>(projects);
-            return Ok(projectDTOs);
+            try
+            {
+                var projects = await _projectRepository.GetAllAsync();
+                var projectDTOs = _mapper.Map<List<ProjectDTO>>(projects);
+                return Ok(projectDTOs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving projects: {ex.Message}" });
+            }
         }
  
         [HttpGet("{id:int}", Name = nameof(GetProjectByIdAsync))]
@@ -43,20 +50,28 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<ProjectDTO>> GetProjectByIdAsync([FromRoute] int id)
         {
-            if (id <= 0)
+            try
             {
-                return BadRequest("Invalid Id!");
-            }
-            var project = await _projectRepository.GetAsync(id);
+                if (id <= 0)
+                {
+                    return BadRequest("Invalid Id!");
+                }
+                var project = await _projectRepository.GetAsync(id);
 
-            if (project == null)
+                if (project == null)
+                {
+                    return NotFound($"Project with the id {id} not found!");
+                }
+
+                var projectDTO = _mapper.Map<ProjectDTO>(project);
+
+                return Ok(projectDTO);
+            }
+            catch (Exception ex)
             {
-                return NotFound($"Project with the id {id} not found!");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while retrieving a project: {ex.Message}" });
             }
-
-            var projectDTO = _mapper.Map<ProjectDTO>(project);
-
-            return Ok(projectDTO);
         }
 
 
@@ -66,18 +81,25 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<ProjectDTO>> PostProjectAsync([FromBody] CreateProjectDTO projectDTO)
         {
-            if (projectDTO == null)
+            try
             {
-                return BadRequest("Invalid Data!");
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                var model = _mapper.Map<Project>(projectDTO);
+
+                var project = await _projectRepository.AddAsync(model);
+
+                var obj = _mapper.Map<ProjectDTO>(project);
+
+                return CreatedAtAction(nameof(GetProjectByIdAsync), new { id = obj.Id }, obj);
             }
-
-            var model = _mapper.Map<Project>(projectDTO);
-
-            var project = await _projectRepository.AddAsync(model);
-
-            var obj = _mapper.Map<ProjectDTO>(project);
-
-            return CreatedAtAction(nameof(GetProjectByIdAsync), new { id = obj.Id }, obj);
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = $"An error occurred while creating a project: {ex.Message}" });
+            }
         }
     }
 
