@@ -7,7 +7,7 @@ using Vendor_Bidding_Application.Models;
 
 namespace Vendor_Bidding_Application.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/vendors")]
     [ApiController]
     public class VendorController : ControllerBase
     {
@@ -44,12 +44,12 @@ namespace Vendor_Bidding_Application.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-        public async Task<ActionResult<VendorDTO>> CreateVendorAsync([FromBody] VendorDTO vendorDTO)
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<VendorDTO>> CreateVendorAsync([FromBody] CreateVendorDTO vendorDTO)
         {
             if(vendorDTO == null)
             {
-                return UnprocessableEntity("Invalid Data");
+                return BadRequest("Invalid Data");
             }
 
             var entity = _mapper.Map<Vendor>(vendorDTO);
