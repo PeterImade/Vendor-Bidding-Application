@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Vendor_Bidding_Application.Contracts;
 using Vendor_Bidding_Application.Data;
 using Vendor_Bidding_Application.DTOs;
 using Vendor_Bidding_Application.Models;
@@ -15,42 +17,67 @@ namespace Vendor_Bidding_Application.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProjectRepository _projectRepository;
+        private readonly IMapper _mapper;
 
-        public ProjectsController(AppDbContext context)
+        public ProjectsController(IProjectRepository projectRepository, IMapper mapper)
         {
-            _context = context;
+            this._projectRepository = projectRepository;
+            this._mapper = mapper;
         }
-
-        // GET: api/Projects
+         
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IEnumerable<ProjectDTO>>> GetProjects()
         {
-            return await _context.Projects.ToListAsync();
+            var projects = await _projectRepository.GetAllAsync();
+            var projectDTOs = _mapper.Map<List<ProjectDTO>>(projects);
+            return Ok(projectDTOs);
         }
-
-        // GET: api/Projects/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProject(int id)
+ 
+        [HttpGet("{id:int}", Name = nameof(GetProjectByIdAsync))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<ProjectDTO>> GetProjectByIdAsync([FromRoute] int id)
         {
-            var project = await _context.Projects.FindAsync(id);
+            if (id <= 0)
+            {
+                return BadRequest("Invalid Id!");
+            }
+            var project = await _projectRepository.GetAsync(id);
 
             if (project == null)
             {
-                return NotFound();
+                return NotFound($"Project with the id {id} not found!");
             }
 
-            return project;
+            var projectDTO = _mapper.Map<ProjectDTO>(project);
+
+            return Ok(projectDTO);
         }
 
 
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject([FromBody] ProjectDTO project)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+        public async Task<ActionResult<ProjectDTO>> PostProjectAsync([FromBody] ProjectDTO projectDTO)
         {
-            //_context.Projects.Add(project);
-            //await _context.SaveChangesAsync();
-            return new Project(); 
-            //return CreatedAtAction("GetProject", new { id = project.Id }, project);
+            if (projectDTO == null)
+            {
+                return UnprocessableEntity("Invalid Data!");
+            }
+
+            var model = _mapper.Map<Project>(projectDTO);
+
+            var project = await _projectRepository.AddAsync(model);
+
+            var obj = _mapper.Map<ProjectDTO>(project);
+
+            return CreatedAtAction(nameof(GetProjectByIdAsync), new { id = obj.Id }, obj);
         }
     }
 

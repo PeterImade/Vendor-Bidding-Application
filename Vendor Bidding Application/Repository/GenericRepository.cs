@@ -22,7 +22,7 @@ namespace Vendor_Bidding_Application.Repository
 
         public async Task<List<T>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync(); 
+            return await _dbSet.AsNoTracking().ToListAsync(); 
         }
 
         public async Task<T> GetAsync(int? id)
