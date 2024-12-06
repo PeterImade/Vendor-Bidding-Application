@@ -18,9 +18,19 @@ namespace Vendor_Bidding_Application.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<string>> Login(LoginDTO loginDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var vendor = await vendorRepository.GetVendorByEmailAsync(email: loginDTO.Email);
+
 
             if (vendor == null) {
                 return NotFound("Password or Email is incorrect");
