@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Vendor_Bidding_Application.Contracts;
@@ -8,6 +9,7 @@ using Vendor_Bidding_Application.Models;
 
 namespace Vendor_Bidding_Application.Controllers
 {
+    [Authorize]
     [Route("api/vendors")]
     [ApiController]
     public class VendorController : ControllerBase

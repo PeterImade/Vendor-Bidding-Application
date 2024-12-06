@@ -1,5 +1,8 @@
 
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Vendor_Bidding_Application.Configurations;
 using Vendor_Bidding_Application.Contracts;
 using Vendor_Bidding_Application.Data;
@@ -14,6 +17,27 @@ namespace Vendor_Bidding_Application
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("66a90af64da3d22639cbfad9fec6adac3576c13867298f359e164bfdd89a3360"))
+                };
+            });
+
+            var AllowAllOrigins = "AllowAllOrigins";
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: AllowAllOrigins, policy =>
+                {
+                    policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+                });
+            });
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -38,6 +62,8 @@ namespace Vendor_Bidding_Application
                 app.UseSwaggerUI();
             }
 
+            app.UseCors(AllowAllOrigins);
+            
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
