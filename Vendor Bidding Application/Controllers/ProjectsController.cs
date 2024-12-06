@@ -15,7 +15,7 @@ using Vendor_Bidding_Application.Models;
 
 namespace Vendor_Bidding_Application.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api/projects")]
     [ApiController]
     public class ProjectsController : ControllerBase

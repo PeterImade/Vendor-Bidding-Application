@@ -9,7 +9,7 @@ using Vendor_Bidding_Application.Models;
 
 namespace Vendor_Bidding_Application.Controllers
 {
-    [Authorize] 
+    //[Authorize] 
     [Route("api/bids")]
     [ApiController]
     public class BidController : ControllerBase
