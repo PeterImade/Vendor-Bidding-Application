@@ -1,4 +1,6 @@
-﻿namespace Vendor_Bidding_Application.Models
+﻿using System.Text.Json.Serialization;
+
+namespace Vendor_Bidding_Application.Models
 {
     public class Vendor: BaseModel
     {
@@ -6,6 +8,8 @@
         public string ContactNumber { get; set; }
         public string Address { get; set; } 
         public string Email { get; set; }
+
+        [JsonIgnore]
         public ICollection<Bid>? Bids { get; set; }
     }
 }

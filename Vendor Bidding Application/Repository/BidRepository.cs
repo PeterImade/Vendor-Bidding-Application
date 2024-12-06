@@ -16,7 +16,7 @@ namespace Vendor_Bidding_Application.Repository
 
         public async Task<List<Bid>> FindBidsByVendorId(int vendorId)
         { 
-            return await _dbContext.Bids.Where(bid => bid.VendorId == vendorId).AsNoTracking().ToListAsync();
+            return await _dbContext.Bids.Include(x => x.Vendor).Include(x => x.Project).Where(bid => bid.VendorId == vendorId).AsNoTracking().ToListAsync();
         }
     }
 }
