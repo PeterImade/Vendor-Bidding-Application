@@ -29,6 +29,7 @@ namespace Vendor_Bidding_Application.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<APIResponse>> GetVendorByIdAsync([FromRoute] int id)
         {
@@ -63,17 +64,13 @@ namespace Vendor_Bidding_Application.Controllers
 
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<APIResponse>> CreateVendorAsync([FromBody] CreateVendorDTO vendorDTO)
         {
             try
-            {
-                if (vendorDTO.Password.Length < 6)
-                {
-                    ModelState.AddModelError("Password", "Password must be at least 6 characters long.");
-                }
-
+            { 
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ModelState);
@@ -90,7 +87,7 @@ namespace Vendor_Bidding_Application.Controllers
                 _apiResponse.Status = true;
                 _apiResponse.Data = obj;
 
-                return CreatedAtAction(nameof(GetVendorByIdAsync), new { id = obj.Id }, _apiResponse);
+                return CreatedAtRoute(nameof(GetVendorByIdAsync), new { id = obj.Id }, _apiResponse);
             }
             catch (Exception ex)
             {

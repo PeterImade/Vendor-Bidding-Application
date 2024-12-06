@@ -9,7 +9,6 @@ namespace Vendor_Bidding_Application.Configurations
         public AutoMapperConfig()
         {
             CreateMap<ProjectDTO, Project>().ReverseMap();
-            CreateMap<CreateProjectDTO, Project>().ReverseMap();
             CreateMap<VendorDTO, Vendor>().ReverseMap();
             CreateMap<CreateVendorDTO, Vendor>().ReverseMap();
             CreateMap<BidDTO, Bid>().ReverseMap();
