@@ -9,7 +9,6 @@ using Vendor_Bidding_Application.Models;
 
 namespace Vendor_Bidding_Application.Controllers
 {
-    [Authorize]
     [Route("api/vendors")]
     [ApiController]
     public class VendorController : ControllerBase
@@ -24,6 +23,7 @@ namespace Vendor_Bidding_Application.Controllers
             this._apiResponse = new();
         }
 
+        [Authorize]
         [HttpGet]
         [Route("{id:int}", Name = nameof(GetVendorByIdAsync))]
         [ProducesResponseType(StatusCodes.Status200OK)]
