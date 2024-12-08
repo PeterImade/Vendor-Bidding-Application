@@ -23,7 +23,6 @@ namespace Vendor_Bidding_Application.Controllers
             this._apiResponse = new();
         }
 
-        [Authorize]
         [HttpGet]
         [Route("{id:int}", Name = nameof(GetVendorByIdAsync))]
         [ProducesResponseType(StatusCodes.Status200OK)]

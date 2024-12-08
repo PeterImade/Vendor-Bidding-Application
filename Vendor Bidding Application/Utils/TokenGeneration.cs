@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Vendor_Bidding_Application.Utils
 {
@@ -24,6 +25,28 @@ namespace Vendor_Bidding_Application.Utils
            
             var token = new JwtSecurityTokenHandler().WriteToken(jwt);
             return token;
+        }
+
+        public static string DecodeToken(string token) 
+        {
+            var handler = new JwtSecurityTokenHandler();
+
+            if (handler.CanReadToken(token))
+            {
+                var jwtToken = handler.ReadJwtToken(token);
+                var payload = new List<string>();
+             
+                var claims = jwtToken.Claims;
+                foreach (var claim in claims)
+                {
+                    payload.Add(claim.Value);
+                }
+                return payload[0];
+            }
+            else
+            {
+                throw new ArgumentException("Invalid token.");
+            }
         }
     }
 }

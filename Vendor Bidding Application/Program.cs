@@ -59,7 +59,19 @@ namespace Vendor_Bidding_Application
             using (var scope = app.Services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                 
+
+                if (!dbContext.Vendors.Any())
+                {
+                    dbContext.Vendors.Add(new Vendor
+                    {
+                        Id = 1,
+                        Name = "James Stuart",
+                        Email = "jammiestuart@aol.com",
+                        Password = "password123?",
+                    });
+                    dbContext.SaveChanges();
+                }
+
                 if (!dbContext.Projects.Any())
                 {
                     dbContext.Projects.AddRange(new List<Project>
